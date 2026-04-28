@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wumpus World — Knowledge-Based Pathfinding Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="layout">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-block">
+        <div class="logo-line">WUMPUS<span class="logo-accent">_WORLD</span></div>
+        <div class="logo-sub">// Knowledge-Based Agent · Propositional Logic + CNF Resolution</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sys-badge" id="headerMeta">
+        <span class="badge-dot"></span>
+        <span class="badge-text">SYS_READY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar sidebar-left">
+    <div class="sidebar-header">
+      <span class="sidebar-title">AGENT_STATUS</span>
+      <span class="ep-badge" id="episodePill">EP:00</span>
+    </div>
+    <div class="sidebar-body">
+
+      <!-- METRICS -->
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">// METRICS</span></div>
+        <div class="panel-body">
+          <div class="metrics-grid">
+            <div class="metric">
+              <div class="metric-val" id="mInfer">0</div>
+              <div class="metric-label">INFER</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" id="mMoves">0</div>
+              <div class="metric-label">MOVES</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" id="mSafe">0</div>
+              <div class="metric-label">SAFE</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" id="mDanger">0</div>
+              <div class="metric-label">DANGER</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERCEPTS -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">// PERCEPTS</span>
+          <span class="pos-label" id="posLabel">[–,–]</span>
+        </div>
+        <div class="panel-body percept-list">
+          <div class="percept-row" id="pBreeze">
+            <span class="p-sig" style="color: #00e5ff;">B</span>
+            <span class="p-name">BREEZE</span>
+            <span class="p-bar"><span class="p-fill"></span></span>
+            <span class="p-status">NONE</span>
+          </div>
+          <div class="percept-row" id="pStench">
+            <span class="p-sig" style="color: #00e676;">S</span>
+            <span class="p-name">STENCH</span>
+            <span class="p-bar"><span class="p-fill"></span></span>
+            <span class="p-status">NONE</span>
+          </div>
+          <div class="percept-row" id="pGlitter">
+            <span class="p-sig" style="color: #ffd600;">G</span>
+            <span class="p-name">GLITTER</span>
+            <span class="p-bar"><span class="p-fill"></span></span>
+            <span class="p-status">NONE</span>
+          </div>
+          <div class="percept-row" id="pScream">
+            <span class="p-sig" style="color: #ff3d57;">W</span>
+            <span class="p-name">WUMPUS_KIA</span>
+            <span class="p-bar"><span class="p-fill"></span></span>
+            <span class="p-status">NONE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEGEND -->
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">// LEGEND</span></div>
+        <div class="panel-body">
+          <div class="legend">
+            <div class="leg-item"><div class="leg-sw sw-agent">A</div><span class="leg-lbl">Agent</span></div>
+            <div class="leg-item"><div class="leg-sw sw-safe">✓</div><span class="leg-lbl">Safe/Visited</span></div>
+            <div class="leg-item"><div class="leg-sw sw-pit">P</div><span class="leg-lbl">Pit</span></div>
+            <div class="leg-item"><div class="leg-sw sw-wumpus">W</div><span class="leg-lbl">Wumpus</span></div>
+            <div class="leg-item"><div class="leg-sw sw-gold">G</div><span class="leg-lbl">Gold</span></div>
+            <div class="leg-item"><div class="leg-sw sw-unknown">?</div><span class="leg-lbl">Unknown</span></div>
+            <div class="leg-item"><div class="leg-sw sw-danger">!</div><span class="leg-lbl">Danger</span></div>
+            <div class="leg-item"><div class="leg-sw sw-home">H</div><span class="leg-lbl">Start (1,1)</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-area">
+    <!-- CONFIG -->
+    <div class="config-bar">
+      <div class="cfg-block">
+        <label class="cfg-label">ROWS</label>
+        <input type="number" class="cfg-input" id="cfgRows" value="5" min="3" max="9">
+      </div>
+      <div class="cfg-block">
+        <label class="cfg-label">COLS</label>
+        <input type="number" class="cfg-input" id="cfgCols" value="5" min="3" max="9">
+      </div>
+      <div class="cfg-block">
+        <label class="cfg-label">PITS</label>
+        <input type="number" class="cfg-input" id="cfgPits" value="4" min="1" max="8">
+      </div>
+      <div class="cfg-divider"></div>
+      <button class="btn btn-primary" onclick="initGame()">⟫ INIT_MAP</button>
+      <div class="cfg-divider"></div>
+      <div class="ctrl-row" id="ctrlRow">
+        <button class="btn btn-step" id="btnStep" onclick="stepAgent()" disabled>▶ STEP</button>
+        <button class="btn btn-auto" id="btnAuto" onclick="toggleAuto()" disabled>▶▶ AUTO</button>
+        <button class="btn btn-reset" id="btnReset" onclick="resetRun()" disabled>↺ RESET</button>
+        <div class="speed-block">
+          <span class="cfg-label">SPEED</span>
+          <select class="cfg-select" id="speedSel">
+            <option value="900">0.5×</option>
+            <option value="450" selected>1×</option>
+            <option value="180">2×</option>
+            <option value="60">5×</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-banner status-idle" id="statusBanner">
+      <span class="status-prefix">»</span>
+      <span id="statusText">CONFIGURE GRID · PRESS INIT_MAP TO BEGIN</span>
+      <span class="status-blink">_</span>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid-wrap" id="gridWrap">
+      <div class="grid-canvas" id="gridCanvas"></div>
+    </div>
+  </main>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="sidebar sidebar-right">
+    <div class="sidebar-header">
+      <span class="sidebar-title">DATA_TERMINAL</span>
+    </div>
+    <div class="sidebar-body">
+      <!-- KB LOG -->
+      <div class="panel panel-tall">
+        <div class="panel-header">
+          <span class="panel-title">// KNOWLEDGE_BASE</span>
+          <button class="clr-btn" onclick="document.getElementById('kbLog').innerHTML=''">CLR</button>
+        </div>
+        <div class="panel-body">
+          <div class="kb-log" id="kbLog">
+            <div class="log-entry log-sys"><span class="log-prefix">›</span> KB_INIT · awaiting percepts...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESOLUTION LOG -->
+      <div class="panel panel-tall">
+        <div class="panel-header">
+          <span class="panel-title">// RESOLUTION_ENGINE</span>
+        </div>
+        <div class="panel-body">
+          <div class="inf-log" id="infLog">
+            <div class="inf-empty">no resolution steps yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="script.js"></script>
+</body>
+</html>
