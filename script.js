@@ -460,4 +460,4 @@ function showToast(msg,type){
 }
 
 window.addEventListener('resize',()=>{if(world.pits)renderGrid();});
-window.addEventListener('load',()=>{initGame();});
+window.addEventListener('load',()=>{initGame();});// final fix
